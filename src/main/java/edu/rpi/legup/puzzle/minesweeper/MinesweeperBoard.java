@@ -1,15 +1,18 @@
 package edu.rpi.legup.puzzle.minesweeper;
 
 import edu.rpi.legup.model.gameboard.GridBoard;
+import java.util.Random;
 
 public class MinesweeperBoard extends GridBoard {
 
-    public MinesweeperBoard(int width, int height) {
+    public MinesweeperBoard(int width, int height, int numBombs) {
         super(width, height);
+        placeBombs(numBombs);
     }
 
-    public MinesweeperBoard(int size) {
+    public MinesweeperBoard(int size, int numBombs) {
         super(size);
+        placeBombs(numBombs);
     }
 
     @Override
@@ -32,5 +35,26 @@ public class MinesweeperBoard extends GridBoard {
             }
         }
         return newMinesweeperBoard;
+    }
+
+    /**
+     * Randomly places a given number of bombs on the board.
+     *
+     * @param numBombs The number of bombs to place.
+     */
+    private void placeBombs(int numBombs) {
+        Random random = new Random();
+        int width = this.dimension.width;
+        int height = this.dimension.height;
+
+        for (int i = 0; i < numBombs; i++) {
+            int x, y;
+            do {
+                x = random.nextInt(width);
+                y = random.nextInt(height);
+            } while (getCell(x, y).hasBomb()); // Ensure no duplicate bombs
+
+            getCell(x, y).setBomb(true);
+        }
     }
 }
