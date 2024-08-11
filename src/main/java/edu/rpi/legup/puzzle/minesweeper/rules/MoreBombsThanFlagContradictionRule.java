@@ -7,7 +7,9 @@ import edu.rpi.legup.puzzle.minesweeper.MinesweeperBoard;
 import edu.rpi.legup.puzzle.minesweeper.MinesweeperCell;
 import edu.rpi.legup.puzzle.minesweeper.MinesweeperTileType;
 import edu.rpi.legup.puzzle.minesweeper.MinesweeperUtilities;
+
 import java.util.ArrayList;
+import java.util.List;
 
 public class MoreBombsThanFlagContradictionRule extends ContradictionRule {
 
@@ -15,13 +17,13 @@ public class MoreBombsThanFlagContradictionRule extends ContradictionRule {
         super(
                 "MINE-CONT-0001",
                 "More Bombs Than Flag",
-                "There can not be more Bombs around a flag than the specified number\n",
+                "There cannot be more bombs around a flagged cell than the specified number.",
                 "edu/rpi/legup/images/minesweeper/contradictions/Bomb_Surplus.jpg");
     }
 
     /**
      * Checks whether the transition has a contradiction at the specific puzzleElement index using
-     * this rule
+     * this rule.
      *
      * @param board board to check contradiction
      * @param puzzleElement equivalent puzzleElement
@@ -37,16 +39,32 @@ public class MoreBombsThanFlagContradictionRule extends ContradictionRule {
         if (cellNum < 0 || cellNum >= 10) {
             return super.getNoContradictionMessage();
         }
-        int numBlack = 0;
-        ArrayList<MinesweeperCell> adjCells =
-                MinesweeperUtilities.getAdjacentCells(minesweeperBoard, cell);
+
+        List<MinesweeperCell> adjCells = MinesweeperUtilities.getAdjacentCells(minesweeperBoard, cell);
+        int numBombs = 0;
+        int numFlags = 0;
+
         for (MinesweeperCell adjCell : adjCells) {
             if (adjCell.getTileType() == MinesweeperTileType.BOMB) {
-                numBlack++;
+                numBombs++;
+            } else if (adjCell.getTileType() == MinesweeperTileType.FLAG) {
+                numFlags++;
             }
         }
-        if (numBlack > cellNum) {
-            return null;
+
+        if (numBombs > cellNum) {
+            return String.format("Contradiction: %d bombs found around cell [%d, %d], but only %d allowed.",
+                    numBombs, cell.getLocation().x, cell.getLocation().y, cellNum);
+        }
+
+        if (numFlags > cellNum) {
+            return String.format("Warning: %d flags placed around cell [%d, %d], but only %d bombs are expected.",
+                    numFlags, cell.getLocation().x, cell.getLocation().y, cellNum);
+        }
+
+        if (numFlags + numBombs < cellNum) {
+            return String.format("Hint: Only %d bombs/flags placed around cell [%d, %d], but %d are needed.",
+                    numFlags + numBombs, cell.getLocation().x, cell.getLocation().y, cellNum);
         }
 
         return super.getNoContradictionMessage();
